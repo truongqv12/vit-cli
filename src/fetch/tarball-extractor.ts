@@ -6,10 +6,19 @@ import { hasDotDotSegment } from "../shared/path-safety.js";
 
 // Ghi buffer tarball ra file tạm rồi giải nén vào destDir.
 // node-tar mặc định strip path tuyệt đối; thêm filter chặn `..` để phòng thủ.
-export async function extractTarball(buf: Buffer, destDir: string): Promise<void> {
+// onEntry (tuỳ chọn): gọi sau mỗi entry hợp lệ với tổng số đã giải nén tính đến thời điểm đó.
+export async function extractTarball(
+	buf: Buffer,
+	destDir: string,
+	onEntry?: (count: number) => void,
+): Promise<void> {
 	await fs.ensureDir(destDir);
 	const tmpFile = path.join(destDir, "_archive.tar.gz");
 	await fs.writeFile(tmpFile, buf);
+
+	// Đếm entry để báo tiến độ — chỉ phục vụ hiển thị, không ảnh hưởng logic giải nén
+	let entryCount = 0;
+
 	await tar.x({
 		file: tmpFile,
 		cwd: destDir,
@@ -19,6 +28,13 @@ export async function extractTarball(buf: Buffer, destDir: string): Promise<void
 			const type = (entry as { type?: string }).type;
 			return type !== "SymbolicLink" && type !== "Link";
 		},
+		// onentry: gọi ngay khi mỗi entry bắt đầu được xử lý (node-tar API)
+		// Nếu hook không bắn (gói cũ) → counter = 0 → spinner vẫn hiển thị đúng
+		onentry: onEntry
+			? () => {
+					onEntry(++entryCount);
+				}
+			: undefined,
 	});
 	await fs.remove(tmpFile);
 }

@@ -7,6 +7,7 @@ import { runPlan } from "./commands/plan/plan-command.js";
 import { runUpdate } from "./commands/update.js";
 import { CLI_VERSION, printVersion } from "./commands/version.js";
 import { log } from "./shared/logger.js";
+import { printPanel } from "./shared/ui/ui.js";
 
 const cli = cac("vit");
 
@@ -98,6 +99,11 @@ try {
 		cli.outputHelp();
 	}
 } catch (err) {
-	log.error(err instanceof Error ? err.message : String(err));
+	// Hiển thị lỗi top-level dưới dạng panel (ghi stderr để script `2>` bắt được, không lẫn stdout).
+	const msg = err instanceof Error ? err.message : String(err);
+	printPanel({
+		title: "Lỗi",
+		zones: [{ label: "Chi tiết", lines: [msg] }],
+	}, true);
 	process.exit(1);
 }

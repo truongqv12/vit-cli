@@ -13,6 +13,7 @@ import { readRegistry, writeRegistry } from "../reconcile/registry.js";
 import { manifestKey } from "../reconcile/reconcile-types.js";
 import type { EngineManifest, FileArea, Registry, ReconcileAction, TargetState } from "../reconcile/reconcile-types.js";
 import { processSettings } from "./settings/settings-processor.js";
+import { createProgress, printPanel } from "../shared/ui/ui.js";
 
 // settings.json xử lý riêng bằng merge (giữ cấu hình user + hook), KHÔNG copy phẳng.
 const SETTINGS_REL = "settings.json";
@@ -105,7 +106,12 @@ export async function executeInstall(
 	const newRegistry: Registry = { engineVersion: manifest.version, files: { ...(registry?.files ?? {}) } };
 	const failures: string[] = [];
 
+	// Progress bar X/Y cho vòng áp file — chỉ bật khi không dryRun và có action thực
+	const total = plan.actions.length;
+	const progress = total > 0 ? createProgress("Áp file", total) : null;
+
 	// Áp từng action độc lập: lỗi 1 file không làm hỏng cả lượt; registry luôn được ghi cuối.
+	let actionIdx = 0;
 	for (const action of plan.actions) {
 		try {
 			const area = action.area;
@@ -141,7 +147,13 @@ export async function executeInstall(
 		} catch (err) {
 			failures.push(`${action.path}: ${err instanceof Error ? err.message : String(err)}`);
 		}
+
+		// Cập nhật progress sau mỗi action (kể cả skip/conflict — vẫn đã xử lý xong)
+		progress?.update(++actionIdx);
 	}
+
+	// Kết thúc progress bar — in dòng hoàn thành
+	progress?.done();
 
 	await writeRegistry(projectRoot, newRegistry);
 
@@ -183,13 +195,30 @@ function printPlan(actions: ReconcileAction[]): void {
 }
 
 function printSummary(r: ExecuteResult): void {
-	log.ok(`cài ${r.installed} · cập nhật ${r.updated} · bỏ qua ${r.skipped} · xoá ${r.deleted}`);
+	// Dòng tóm tắt số liệu — luôn hiển thị
+	const statsLine = `cài ${r.installed}  cập nhật ${r.updated}  bỏ qua ${r.skipped}  xoá ${r.deleted}`;
+
+	// Xây zone phụ nếu có conflict hoặc lỗi
+	const extraZones: Array<{ label: string; lines: string[] }> = [];
+
 	if (r.conflicts.length > 0) {
-		log.warn(`${r.conflicts.length} conflict (giữ bản bạn sửa). Dùng --force để ghi đè:`);
-		for (const c of r.conflicts) log.plain(`  - ${c}`);
+		extraZones.push({
+			label: `CONFLICT (${r.conflicts.length}) — dùng --force để ghi đè`,
+			lines: r.conflicts.map((c) => `  ${c}`),
+		});
 	}
 	if (r.failures.length > 0) {
-		log.warn(`${r.failures.length} file lỗi khi áp (đã bỏ qua, registry vẫn ghi):`);
-		for (const f of r.failures) log.plain(`  - ${f}`);
+		extraZones.push({
+			label: `LỖI (${r.failures.length}) — đã bỏ qua, registry vẫn ghi`,
+			lines: r.failures.map((f) => `  ${f}`),
+		});
 	}
+
+	printPanel({
+		title: "Kết quả cài đặt",
+		zones: [
+			{ label: "TỔNG KẾT", lines: [statsLine] },
+			...extraZones,
+		],
+	});
 }
