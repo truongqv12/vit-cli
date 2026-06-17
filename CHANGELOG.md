@@ -1,3 +1,16 @@
+## [1.1.0](https://github.com/truongqv12/vit-cli/compare/v1.0.0...v1.1.0) (2026-06-17)
+
+### 🚀 Features
+
+* cài deps skill khi init/update (--install-skills) ([724123a](https://github.com/truongqv12/vit-cli/commit/724123a5b99f1581dfd47ca2ade3fe5e81d3623e))
+* doctor kiểm hook wiring + skill (phát hiện zombie wiring, đếm skill) ([cef482e](https://github.com/truongqv12/vit-cli/commit/cef482ef234cb6a33517bf2268ac818ab2e0b687))
+* lệnh vit migrate xuất .claude/ sang codex/opencode/antigravity ([edfd48d](https://github.com/truongqv12/vit-cli/commit/edfd48d844b0d587521b33c8621b2856d5bba7f0))
+* merge settings.json thay vì đè (giữ hook/config user) + prune zombie hook ([9fb1c1c](https://github.com/truongqv12/vit-cli/commit/9fb1c1ceb11b69ca76cb1bf10fd97fbec62c08b6))
+
+### 📚 Documentation
+
+* cập nhật README (migrate, --install-skills, doctor health-check, phase 6-11) ([162b17c](https://github.com/truongqv12/vit-cli/commit/162b17c081c2330e612bde994d089dabbee69c3a))
+
 ## 1.0.0 (2026-06-17)
 
 ### 🚀 Features
