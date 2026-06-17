@@ -2,13 +2,19 @@
 import fs from "fs-extra";
 import path from "node:path";
 import * as tar from "tar";
+import { hasDotDotSegment } from "../shared/path-safety.js";
 
 // Ghi buffer tarball ra file tạm rồi giải nén vào destDir.
+// node-tar mặc định strip path tuyệt đối; thêm filter chặn `..` để phòng thủ.
 export async function extractTarball(buf: Buffer, destDir: string): Promise<void> {
 	await fs.ensureDir(destDir);
 	const tmpFile = path.join(destDir, "_archive.tar.gz");
 	await fs.writeFile(tmpFile, buf);
-	await tar.x({ file: tmpFile, cwd: destDir });
+	await tar.x({
+		file: tmpFile,
+		cwd: destDir,
+		filter: (entryPath) => !hasDotDotSegment(entryPath),
+	});
 	await fs.remove(tmpFile);
 }
 

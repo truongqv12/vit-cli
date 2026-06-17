@@ -18,6 +18,10 @@ export async function installEngine(options: InstallEngineOptions): Promise<void
 	const fetched = await fetchEngine(token);
 	try {
 		const manifest = await loadOrSynthesizeManifest(fetched.engineDir, fetched.bundledManifestPath, fetched.version);
+		if (manifest.files.length === 0) {
+			log.warn("Manifest rỗng — không có file engine nào để cài. Kiểm tra lại payload engine.");
+			return;
+		}
 		log.info(`Engine ${manifest.version}: ${manifest.files.length} file payload.`);
 		await executeInstall(process.cwd(), fetched.engineDir, manifest, {
 			force: options.force,

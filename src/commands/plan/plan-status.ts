@@ -4,7 +4,7 @@ import path from "node:path";
 import { log } from "../../shared/logger.js";
 import { STATUS_ACTIVE, STATUS_DONE, STATUS_PENDING } from "./plan-scaffold.js";
 
-// Tìm plan.md: target là file/thư mục; nếu rỗng, dùng ./plan.md hoặc tìm trong ./plans gần nhất.
+// Tìm plan.md: target là file/thư mục (dùng <dir>/plan.md); nếu rỗng, dùng ./plan.md ở cwd.
 export function resolvePlanFile(target?: string): string | null {
 	if (target) {
 		const abs = path.resolve(target);

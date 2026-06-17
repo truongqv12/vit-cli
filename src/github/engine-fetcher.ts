@@ -19,32 +19,35 @@ async function assertAccess(octokit: Octokit): Promise<void> {
 		await octokit.repos.get({ owner: ENGINE_REPO.owner, repo: ENGINE_REPO.repo });
 	} catch (err: unknown) {
 		const status = (err as { status?: number }).status;
-		if (status === 404 || status === 403) {
+		if (status === 404 || status === 403 || status === 401) {
 			throw new Error(
-				`Không có quyền đọc engine private ${ENGINE_REPO.owner}/${ENGINE_REPO.repo}. ` +
-					"Kiểm tra token có quyền 'repo' và bạn được mời vào repo.",
+				`Không có quyền đọc engine private ${ENGINE_REPO.owner}/${ENGINE_REPO.repo} (HTTP ${status}). ` +
+					"Kiểm tra token còn hạn, có quyền 'repo', và bạn được mời vào repo.",
 			);
 		}
 		throw err;
 	}
 }
 
-// Thử tải release asset .tar.gz mới nhất. Trả null nếu chưa có release/asset.
+// Thử tải release asset .tar.gz mới nhất. Trả null khi CHƯA có release (404) hoặc không có asset.
+// Lỗi khác (mạng/401/403/5xx) ném ra để KHÔNG âm thầm fallback sang branch (phiên bản khác).
 async function tryFetchReleaseAsset(octokit: Octokit): Promise<{ buf: Buffer; version: string } | null> {
+	let rel: Awaited<ReturnType<Octokit["repos"]["getLatestRelease"]>>;
 	try {
-		const rel = await octokit.repos.getLatestRelease({ owner: ENGINE_REPO.owner, repo: ENGINE_REPO.repo });
-		const asset = rel.data.assets.find((a) => a.name.endsWith(".tar.gz"));
-		if (!asset) return null;
-		const res = await octokit.request("GET /repos/{owner}/{repo}/releases/assets/{asset_id}", {
-			owner: ENGINE_REPO.owner,
-			repo: ENGINE_REPO.repo,
-			asset_id: asset.id,
-			headers: { accept: "application/octet-stream" },
-		});
-		return { buf: Buffer.from(res.data as unknown as ArrayBuffer), version: rel.data.tag_name };
-	} catch {
-		return null;
+		rel = await octokit.repos.getLatestRelease({ owner: ENGINE_REPO.owner, repo: ENGINE_REPO.repo });
+	} catch (err: unknown) {
+		if ((err as { status?: number }).status === 404) return null; // chưa có release nào
+		throw err;
 	}
+	const asset = rel.data.assets.find((a) => a.name.endsWith(".tar.gz"));
+	if (!asset) return null;
+	const res = await octokit.request("GET /repos/{owner}/{repo}/releases/assets/{asset_id}", {
+		owner: ENGINE_REPO.owner,
+		repo: ENGINE_REPO.repo,
+		asset_id: asset.id,
+		headers: { accept: "application/octet-stream" },
+	});
+	return { buf: Buffer.from(res.data as unknown as ArrayBuffer), version: rel.data.tag_name };
 }
 
 // Fallback: tải tarball repo theo branch (luôn dùng được khi có quyền đọc).
