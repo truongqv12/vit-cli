@@ -1,5 +1,8 @@
-// Lệnh `vit update` — cập nhật Vit Engine lên bản mới nhất.
-// Khung Phase 1: reconcile delta + áp deletions sẽ được nối vào ở Phase 3.
+// Lệnh `vit update` — cập nhật Vit Engine lên bản mới nhất (giữ file user đã sửa).
+import fs from "fs-extra";
+import path from "node:path";
+import { installEngine } from "../install/install-engine.js";
+import { REGISTRY_FILE } from "../shared/config.js";
 import { log } from "../shared/logger.js";
 
 export interface UpdateOptions {
@@ -8,7 +11,16 @@ export interface UpdateOptions {
 	dryRun?: boolean;
 }
 
-export async function runUpdate(_options: UpdateOptions): Promise<void> {
-	log.info("`vit update` đang được hoàn thiện ở Phase 3 (reconcile + deletions).");
-	log.info("Luồng dự kiến: tải engine mới -> so checksum với registry -> áp delta/deletions -> giữ file user đã sửa (trừ --force).");
+export async function runUpdate(options: UpdateOptions): Promise<void> {
+	try {
+		const hasRegistry = fs.existsSync(path.resolve(process.cwd(), REGISTRY_FILE));
+		if (!hasRegistry) {
+			log.warn("Chưa cài engine ở project này — chạy `vit init` trước. Vẫn tiếp tục như cài mới.");
+		}
+		await installEngine({ token: options.token, force: options.force, dryRun: options.dryRun });
+		if (!options.dryRun) log.ok("Cập nhật engine xong.");
+	} catch (err) {
+		log.error(err instanceof Error ? err.message : String(err));
+		process.exitCode = 1;
+	}
 }

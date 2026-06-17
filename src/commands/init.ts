@@ -1,5 +1,5 @@
-// Lệnh `vit init` — cài Vit Engine vào .claude/ của project.
-// Khung Phase 1: logic tải engine (Phase 2) + reconcile (Phase 3) sẽ được nối vào đây.
+// Lệnh `vit init` — cài Vit Engine vào .claude/ của project hiện tại.
+import { installEngine } from "../install/install-engine.js";
 import { log } from "../shared/logger.js";
 
 export interface InitOptions {
@@ -7,7 +7,12 @@ export interface InitOptions {
 	force?: boolean;
 }
 
-export async function runInit(_options: InitOptions): Promise<void> {
-	log.info("`vit init` đang được hoàn thiện ở Phase 2 (tải engine) và Phase 3 (reconcile).");
-	log.info("Luồng dự kiến: resolve token -> tải release asset engine -> reconcile vào .claude/ -> ghi registry.");
+export async function runInit(options: InitOptions): Promise<void> {
+	try {
+		await installEngine({ token: options.token, force: options.force });
+		log.ok("Cài engine xong. Mở Claude Code và dùng /vit:plan, /vit:cook, /vit:scout, /vit:fix.");
+	} catch (err) {
+		log.error(err instanceof Error ? err.message : String(err));
+		process.exitCode = 1;
+	}
 }
