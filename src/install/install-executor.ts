@@ -10,6 +10,10 @@ import { fileChecksum } from "../reconcile/checksum.js";
 import { reconcile } from "../reconcile/reconciler.js";
 import { readRegistry, writeRegistry } from "../reconcile/registry.js";
 import type { EngineManifest, Registry, ReconcileAction, TargetState } from "../reconcile/reconcile-types.js";
+import { processSettings } from "./settings/settings-processor.js";
+
+// settings.json xử lý riêng bằng merge (giữ cấu hình user + hook), KHÔNG copy phẳng.
+const SETTINGS_REL = "settings.json";
 
 export interface ExecuteOptions {
 	force?: boolean;
@@ -45,23 +49,37 @@ export async function executeInstall(
 ): Promise<ExecuteResult> {
 	const runtimeRoot = path.resolve(projectRoot, RUNTIME_DIR);
 	const registry = await readRegistry(projectRoot);
-	const deletions = await readDeletions(engineDir);
+	// settings.json xử lý riêng — không để lọt vào deletions (tránh delete↔re-create flip-flop).
+	const deletions = (await readDeletions(engineDir)).filter((d) => d !== SETTINGS_REL);
+
+	// Loại settings.json khỏi luồng reconcile file-phẳng — xử lý bằng merge ở cuối.
+	const reconcileManifest: EngineManifest = {
+		...manifest,
+		files: manifest.files.filter((f) => f.path !== SETTINGS_REL),
+	};
 
 	// Dựng trạng thái đích hiện tại cho mọi path liên quan.
 	const targetState: TargetState = {};
-	const allPaths = new Set<string>([...manifest.files.map((f) => f.path), ...deletions]);
+	const allPaths = new Set<string>([...reconcileManifest.files.map((f) => f.path), ...deletions]);
 	for (const rel of allPaths) {
 		targetState[rel] = await fileChecksum(safeResolve(runtimeRoot, rel));
 	}
 
-	const plan = reconcile({ manifest, registry, targetState, deletions, force: !!options.force });
+	const plan = reconcile({
+		manifest: reconcileManifest,
+		registry,
+		targetState,
+		deletions,
+		force: !!options.force,
+	});
 
 	if (options.dryRun) {
 		printPlan(plan.actions);
+		await processSettings({ engineDir, projectRoot, dryRun: true });
 		return countResult(plan.actions, []);
 	}
 
-	const srcChecksumOf = new Map(manifest.files.map((f) => [f.path, f.checksum]));
+	const srcChecksumOf = new Map(reconcileManifest.files.map((f) => [f.path, f.checksum]));
 	const newRegistry: Registry = { engineVersion: manifest.version, files: { ...(registry?.files ?? {}) } };
 	const failures: string[] = [];
 
@@ -101,6 +119,10 @@ export async function executeInstall(
 	}
 
 	await writeRegistry(projectRoot, newRegistry);
+
+	// settings.json: merge engine vào bản user + prune hook chết (sau khi file hook đã vào .claude/).
+	await processSettings({ engineDir, projectRoot });
+
 	const result = countResult(plan.actions, failures);
 	printSummary(result);
 	return result;
