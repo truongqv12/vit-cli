@@ -48,14 +48,25 @@ Sau khi `vit init`, mở Claude Code và dùng các slash-command của engine:
 | Lệnh | Mô tả |
 | --- | --- |
 | `vit init` | Cài engine vào `.claude/` (per-project). |
-| `vit update` | Cập nhật engine; giữ file bạn đã sửa (trừ `--force`). |
+| `vit update` | Cập nhật engine; giữ file bạn đã sửa (trừ `--force`). `--dry-run` xem trước. |
+| `vit plan` | `create` / `check` / `uncheck` / `status` cho thư mục plan. |
 | `vit doctor` | Kiểm tra token, quyền engine, `.claude/`. |
 | `vit version` | In phiên bản CLI + engine. |
+
+### Ví dụ `vit plan`
+
+```bash
+vit plan create --title "Thêm xác thực" --phases "Nghiên cứu, Triển khai, Kiểm thử" --dir auth
+cd plans/<date>-auth
+vit plan check 1 --start     # phase 1 -> đang làm
+vit plan check 2             # phase 2 -> xong
+vit plan status              # in tiến độ
+```
 
 ## Trạng thái phát triển
 
 - [x] Phase 1 — khung CLI + engine + đổi tên `vit:`
-- [ ] Phase 2 — truy cập engine private qua `gh`, tải/giải nén
-- [ ] Phase 3 — `init`/`update` reconcile theo manifest + deletions
-- [ ] Phase 4 — lệnh `plan`
-- [ ] Phase 5 — lệnh `memory` + release pipeline
+- [x] Phase 2 — truy cập engine private qua `gh`, tải/giải nén
+- [x] Phase 3 — `init`/`update` reconcile theo manifest + deletions
+- [x] Phase 4 — lệnh `plan`
+- [x] Phase 5 — skill `memory` (native) + release pipeline
