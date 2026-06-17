@@ -148,6 +148,15 @@ export function getProviderConfig(provider: ProviderType): ProviderConfig {
 /** Danh sách tất cả provider được hỗ trợ */
 export const ALL_PROVIDERS: ProviderType[] = ["codex", "opencode", "antigravity"];
 
+/** Validate danh sách tên provider thô → ném lỗi nếu có tên không hợp lệ */
+function validateProviders(names: string[]): ProviderType[] {
+	const invalid = names.filter((p) => !ALL_PROVIDERS.includes(p as ProviderType));
+	if (invalid.length > 0) {
+		throw new Error(`Provider không hợp lệ: ${invalid.join(", ")}. Chỉ hỗ trợ: ${ALL_PROVIDERS.join(", ")}`);
+	}
+	return names as ProviderType[];
+}
+
 /** Parse chuỗi providers từ CLI (vd: "codex,opencode") → mảng ProviderType hợp lệ */
 export function parseProviderList(input: string | undefined): ProviderType[] {
 	if (!input) return ALL_PROVIDERS;
@@ -155,11 +164,32 @@ export function parseProviderList(input: string | undefined): ProviderType[] {
 		.split(",")
 		.map((s) => s.trim().toLowerCase())
 		.filter(Boolean);
-	const invalid = parsed.filter((p) => !ALL_PROVIDERS.includes(p as ProviderType));
-	if (invalid.length > 0) {
-		throw new Error(`Provider không hợp lệ: ${invalid.join(", ")}. Chỉ hỗ trợ: ${ALL_PROVIDERS.join(", ")}`);
+	return validateProviders(parsed);
+}
+
+/**
+ * Quyết định provider đích từ các cờ CLI. Thứ tự ưu tiên: --all > --agent > --providers (alias ẩn).
+ * --agent nhận cả variadic (string[]) lẫn CSV (string), mỗi phần tử có thể chứa dấu phẩy.
+ */
+export function resolveProviders(options: {
+	all?: boolean;
+	agent?: string | string[];
+	providers?: string;
+}): ProviderType[] {
+	if (options.all) return [...ALL_PROVIDERS];
+
+	if (options.agent !== undefined) {
+		const raw = Array.isArray(options.agent) ? options.agent : [options.agent];
+		const names = raw
+			.flatMap((token) => token.split(","))
+			.map((s) => s.trim().toLowerCase())
+			.filter(Boolean);
+		if (names.length === 0) return ALL_PROVIDERS;
+		return validateProviders(names);
 	}
-	return parsed as ProviderType[];
+
+	// Không có --agent → giữ hành vi cũ qua alias --providers
+	return parseProviderList(options.providers);
 }
 
 /**

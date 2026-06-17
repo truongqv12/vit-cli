@@ -125,5 +125,45 @@ export interface MigrateRegistry {
 export interface MigrateOptions {
 	dryRun?: boolean;
 	global?: boolean;
+	/** Alias ẩn của --agent: danh sách provider ngăn cách dấu phẩy (giữ lệnh cũ chạy được) */
 	providers?: string;
+
+	// --- Chọn provider ---
+	/** --agent: provider đích, variadic (string[]) hoặc CSV (string) */
+	agent?: string | string[];
+	/** --all: migrate sang cả 3 provider */
+	all?: boolean;
+
+	// --- Ghi đè / xác nhận ---
+	/** --force: cài lại cả khi nội dung không đổi (đè + backup) */
+	force?: boolean;
+	/** --yes: bỏ qua prompt xác nhận (hiện vit chưa có prompt → giữ để parity bề mặt) */
+	yes?: boolean;
+
+	// --- Scope filter theo loại item ---
+	onlyAgents?: boolean;
+	onlyCommands?: boolean;
+	onlySkills?: boolean;
+	/** --config: chỉ migrate CLAUDE.md config */
+	config?: boolean;
+	/** --rules: chỉ migrate .claude/rules/ */
+	rules?: boolean;
+	/** --hooks: chỉ migrate .claude/hooks/ */
+	hooks?: boolean;
+	skipAgents?: boolean;
+	skipCommands?: boolean;
+	skipSkills?: boolean;
+	skipConfig?: boolean;
+	skipRules?: boolean;
+	skipHooks?: boolean;
+
+	// --- Nguồn config tùy biến ---
+	/** --source: đường dẫn CLAUDE.md tùy biến (CHỈ áp cho config) */
+	source?: string;
+
+	// --- Mode flags (parity bề mặt, KISS) ---
+	install?: boolean;
+	reconcile?: boolean;
+	reinstallEmptyDirs?: boolean;
+	respectDeletions?: boolean;
 }

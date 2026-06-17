@@ -3,8 +3,7 @@
  * Trả về danh sách PortableItem và SkillInfo sẵn sàng để convert + install.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { homedir } from "node:os";
-import { join, relative } from "node:path";
+import { join, relative, resolve } from "node:path";
 import type { ParsedFrontmatter, PortableItem, SkillInfo } from "./migrate-types.js";
 
 // ─── Frontmatter parser ────────────────────────────────────────────────────
@@ -177,11 +176,15 @@ export function discoverHooks(claudeDir: string): PortableItem[] {
 	return items;
 }
 
-/** Đọc CLAUDE.md (config) của project → PortableItem hoặc null */
-export function discoverConfig(claudeDir: string): PortableItem | null {
-	// Tìm CLAUDE.md ở cấp project (cha của .claude/)
-	const projectRoot = join(claudeDir, "..");
-	const configPath = join(projectRoot, "CLAUDE.md");
+/**
+ * Đọc CLAUDE.md (config) của project → PortableItem hoặc null.
+ * sourcePath (CHỈ áp cho config) ghi đè đường dẫn mặc định <projectRoot>/CLAUDE.md.
+ */
+export function discoverConfig(claudeDir: string, sourcePath?: string): PortableItem | null {
+	// sourcePath override (resolve theo cwd); else CLAUDE.md ở cấp project (cha của .claude/)
+	const configPath = sourcePath
+		? resolve(sourcePath)
+		: join(join(claudeDir, ".."), "CLAUDE.md");
 	if (!existsSync(configPath)) return null;
 
 	let body = "";
@@ -214,24 +217,16 @@ export interface DiscoveredItems {
 }
 
 /** Quét toàn bộ .claude/ của project hoặc global (~/.claude) */
-export function discoverAll(claudeDir: string): DiscoveredItems {
+export function discoverAll(
+	claudeDir: string,
+	opts?: { configSource?: string },
+): DiscoveredItems {
 	return {
 		agents: discoverAgents(claudeDir),
 		commands: discoverCommands(claudeDir),
 		skills: discoverSkills(claudeDir),
 		rules: discoverRules(claudeDir),
 		hooks: discoverHooks(claudeDir),
-		config: discoverConfig(claudeDir),
+		config: discoverConfig(claudeDir, opts?.configSource),
 	};
-}
-
-/** Đường dẫn .claude/ theo scope */
-export function resolveClaudeDir(isGlobal: boolean): string {
-	if (isGlobal) {
-		return join(
-			process.env.HOME ?? process.env.USERPROFILE ?? homedir(),
-			".claude",
-		);
-	}
-	return join(process.cwd(), ".claude");
 }

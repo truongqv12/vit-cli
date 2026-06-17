@@ -153,6 +153,7 @@ export async function installPortableItem(
 	portableType: PortableType,
 	isGlobal: boolean,
 	dryRun: boolean,
+	force = false,
 ): Promise<MigrateInstallResult> {
 	const providerConfig = PROVIDERS[provider];
 	const typeKey = portableType === "agent"
@@ -232,7 +233,8 @@ export async function installPortableItem(
 	const newChecksum = computeChecksum(converted.content);
 	const decision = needsInstall(registry, item.name, portableType, provider, isGlobal, newChecksum);
 
-	if (decision === "skip") {
+	// force ép cài lại, bỏ qua so khớp checksum (vẫn ghi đè + backup như thường)
+	if (decision === "skip" && !force) {
 		return {
 			provider,
 			providerDisplayName: providerConfig.displayName,
@@ -326,6 +328,7 @@ export async function installSkillDirectory(
 	provider: ProviderType,
 	isGlobal: boolean,
 	dryRun: boolean,
+	force = false,
 ): Promise<MigrateInstallResult> {
 	const providerConfig = PROVIDERS[provider];
 	const skillConfig = providerConfig.skills;
@@ -393,7 +396,8 @@ export async function installSkillDirectory(
 			e.provider === provider &&
 			e.global === isGlobal,
 	);
-	if (existsSync(targetDir) && existingSkillEntry?.checksum === skillChecksum) {
+	// force ép cài lại skill, bỏ qua so khớp checksum SKILL.md
+	if (!force && existsSync(targetDir) && existingSkillEntry?.checksum === skillChecksum) {
 		return {
 			provider,
 			providerDisplayName: providerConfig.displayName,

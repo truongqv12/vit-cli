@@ -39,10 +39,51 @@ cli
 
 cli
 	.command("migrate", "Xuất .claude/ sang provider AI khác (codex, opencode, antigravity)")
+	// Chọn provider
+	.option("-a, --agent <agents...>", "Provider đích (codex, opencode, antigravity) — lặp được")
+	.option("--all", "Migrate sang cả 3 provider")
+	.option("--providers <list>", "(alias của --agent) danh sách provider ngăn cách dấu phẩy")
+	// Scope / ghi đè
+	.option("-g, --global", "Migrate từ ~/.claude/ thay vì .claude/ project")
+	.option("-f, --force", "Cài lại cả khi nội dung không đổi (đè + backup)")
+	.option("-y, --yes", "Bỏ qua prompt xác nhận")
 	.option("--dry-run", "Xem kế hoạch, không ghi file")
-	.option("--global", "Migrate từ ~/.claude/ thay vì .claude/ project")
-	.option("--providers <list>", "Danh sách provider ngăn cách dấu phẩy (mặc định: tất cả 3)")
-	.action((options) => runMigrate(options));
+	// Chỉ migrate loại được bật
+	.option("--only-agents", "Chỉ migrate agents")
+	.option("--only-commands", "Chỉ migrate commands")
+	.option("--only-skills", "Chỉ migrate skills")
+	.option("--config", "Chỉ migrate CLAUDE.md config")
+	.option("--rules", "Chỉ migrate .claude/rules/")
+	.option("--hooks", "Chỉ migrate .claude/hooks/")
+	// Loại bỏ loại
+	.option("--skip-agents", "Bỏ qua agents")
+	.option("--skip-commands", "Bỏ qua commands")
+	.option("--skip-skills", "Bỏ qua skills")
+	.option("--skip-config", "Bỏ qua config")
+	.option("--skip-rules", "Bỏ qua rules")
+	.option("--skip-hooks", "Bỏ qua hooks")
+	// Nguồn config tùy biến
+	.option("--source <path>", "Đường dẫn CLAUDE.md tùy biến (chỉ áp cho config)")
+	// Mode flags (parity bề mặt)
+	.option("--install", "Chọn item để cài (vit ánh xạ về install loop)")
+	.option("--reconcile", "Ép đối chiếu (vit dùng idempotent checksum, chưa phát hiện user-edit nâng cao)")
+	.option("--reinstall-empty-dirs", "Cài lại item khi thư mục loại rỗng (mặc định)")
+	.option("--respect-deletions", "Giữ trạng thái đã xóa (vô hiệu reinstall-empty-dirs)")
+	.action((options) => {
+		// cac trả --agent dạng scalar khi chỉ 1 giá trị; chuẩn hoá về mảng cho resolveProviders
+		if (options.agent !== undefined && !Array.isArray(options.agent)) {
+			options.agent = [options.agent];
+		}
+		// cac KHÔNG gom giá trị cách bằng dấu cách vào --agent; phần dư rơi vào cli.args và bị bỏ.
+		// Cảnh báo để tránh âm thầm bỏ provider — phải lặp cờ (-a x -a y) hoặc CSV (-a x,y).
+		if (cli.args.length > 0) {
+			log.warn(
+				`Bỏ qua tham số dư: ${cli.args.join(", ")}. ` +
+				`Chọn nhiều provider bằng cách lặp cờ "-a codex -a opencode" hoặc CSV "-a codex,opencode".`,
+			);
+		}
+		return runMigrate(options);
+	});
 
 cli.command("doctor", "Kiểm tra môi trường (gh token, quyền engine, .claude/)").action(() => runDoctor());
 

@@ -63,7 +63,7 @@ Sau khi `vit init`, mở Claude Code và dùng các slash-command của engine:
 | --- | --- |
 | `vit init` | Cài engine vào `.claude/` (per-project) + tạo `.claude/.env` + hỏi cài deps skill. `--install-skills` cài không hỏi; `-y/--yes` tự đồng ý; `--with-sudo` (Linux) gồm gói hệ thống. |
 | `vit update` | Cập nhật engine; giữ file bạn đã sửa (trừ `--force`). `--dry-run` xem trước. Merge `settings.json` (giữ hook/config bạn thêm). |
-| `vit migrate` | Xuất `.claude/` (agents/skills/rules/hooks/commands) sang **codex / opencode / antigravity**. `--dry-run`, `--global`, `--providers <list>`. |
+| `vit migrate` | Xuất `.claude/` (agents/skills/rules/hooks/commands) sang **codex / opencode / antigravity**. Chọn provider: `-a/--agent <list>` (lặp được hoặc CSV), `--all`, `--providers` (alias). Ghi đè: `-f/--force`, `-y/--yes`, `--dry-run`, `-g/--global`. Lọc loại: `--only-agents/--only-commands/--only-skills`, `--config`, `--rules`, `--hooks`, `--skip-*`. Khác: `--source <path>` (CLAUDE.md tùy biến, chỉ config), `--install`/`--reconcile`. |
 | `vit plan` | `create` / `check` / `uncheck` / `status` cho thư mục plan. |
 | `vit doctor` | Kiểm tra token, quyền engine, `.claude/`, hook wiring, skill. |
 | `vit version` | In phiên bản CLI + engine. |
@@ -72,9 +72,19 @@ Sau khi `vit init`, mở Claude Code và dùng các slash-command của engine:
 
 ```bash
 vit migrate --dry-run                          # xem kế hoạch, không ghi
-vit migrate --providers codex,opencode         # chỉ 2 provider
-vit migrate                                     # cả 3: codex, opencode, antigravity
+vit migrate --agent codex                       # 1 provider
+vit migrate --agent codex -f                    # cài lại cả khi không đổi (đè + backup)
+vit migrate -a codex -a opencode                # nhiều provider (lặp cờ)
+vit migrate --agent codex,opencode              # nhiều provider (CSV)
+vit migrate --all                               # cả 3: codex, opencode, antigravity
+vit migrate --agent codex --only-agents         # chỉ agents
+vit migrate --agent codex --skip-skills         # mọi loại trừ skills
+vit migrate --providers codex,opencode          # alias cũ vẫn chạy
 ```
+
+> Hook của bạn vẫn được migrate (chỉ Codex nhận hook; OpenCode/Antigravity không hỗ trợ). Riêng nhóm
+> hook **generated-context** của engine (session-init, dev-rules-reminder, plan-format-kanban…) bị bỏ
+> qua vì chúng bơm context theo định dạng riêng của Claude, không chạy được trên agent khác.
 
 ### Ví dụ `vit plan`
 
