@@ -1,6 +1,6 @@
 {
   "name": "@truongqv12/vit-cli",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "Vit CLI — cài đặt, cập nhật và quản lý Vit Engine (rules/skills/agents) cho Claude Code.",
   "publishConfig": {

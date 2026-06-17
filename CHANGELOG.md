@@ -1,3 +1,13 @@
+## [1.2.0](https://github.com/truongqv12/vit-cli/compare/v1.1.0...v1.2.0) (2026-06-17)
+
+### 🚀 Features
+
+* **init:** hỏi cài deps skill khi tương tác và tự tạo .claude/.env ([f31bae4](https://github.com/truongqv12/vit-cli/commit/f31bae44dfe5cb459fd29f1e3e5de437aa1c2c81))
+
+### 🐞 Bug Fixes
+
+* **init:** cảnh báo khi thiếu .env.example trong payload thay vì bỏ qua câm ([2ea60c0](https://github.com/truongqv12/vit-cli/commit/2ea60c0db51659e585ae6424d4d1f3e9f730d9f8))
+
 ## [1.1.0](https://github.com/truongqv12/vit-cli/compare/v1.0.0...v1.1.0) (2026-06-17)
 
 ### 🚀 Features
