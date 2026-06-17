@@ -29,10 +29,12 @@ npm install -g @truongqv12/vit-cli
 ```bash
 gh auth login                 # cấp quyền đọc engine private (một lần)
 cd /đường/dẫn/project
-vit doctor                    # kiểm tra môi trường
+vit doctor                    # kiểm tra môi trường + hook wiring + skill
 vit init                      # cài engine vào .claude/ của project
+vit init --install-skills     # cài luôn deps skill (python venv, npm)
 vit update                    # cập nhật engine lên bản mới nhất
 vit update --dry-run          # xem trước thay đổi
+vit migrate --dry-run         # xem kế hoạch xuất .claude/ sang provider khác
 vit version                   # phiên bản CLI + engine đã cài
 ```
 
@@ -49,11 +51,20 @@ Sau khi `vit init`, mở Claude Code và dùng các slash-command của engine:
 
 | Lệnh | Mô tả |
 | --- | --- |
-| `vit init` | Cài engine vào `.claude/` (per-project). |
-| `vit update` | Cập nhật engine; giữ file bạn đã sửa (trừ `--force`). `--dry-run` xem trước. |
+| `vit init` | Cài engine vào `.claude/` (per-project). `--install-skills` cài deps skill; `--with-sudo` (Linux) gồm gói hệ thống. |
+| `vit update` | Cập nhật engine; giữ file bạn đã sửa (trừ `--force`). `--dry-run` xem trước. Merge `settings.json` (giữ hook/config bạn thêm). |
+| `vit migrate` | Xuất `.claude/` (agents/skills/rules/hooks/commands) sang **codex / opencode / antigravity**. `--dry-run`, `--global`, `--providers <list>`. |
 | `vit plan` | `create` / `check` / `uncheck` / `status` cho thư mục plan. |
-| `vit doctor` | Kiểm tra token, quyền engine, `.claude/`. |
+| `vit doctor` | Kiểm tra token, quyền engine, `.claude/`, hook wiring, skill. |
 | `vit version` | In phiên bản CLI + engine. |
+
+### Ví dụ `vit migrate`
+
+```bash
+vit migrate --dry-run                          # xem kế hoạch, không ghi
+vit migrate --providers codex,opencode         # chỉ 2 provider
+vit migrate                                     # cả 3: codex, opencode, antigravity
+```
 
 ### Ví dụ `vit plan`
 
@@ -72,3 +83,9 @@ vit plan status              # in tiến độ
 - [x] Phase 3 — `init`/`update` reconcile theo manifest + deletions
 - [x] Phase 4 — lệnh `plan`
 - [x] Phase 5 — skill `memory` (native) + release pipeline
+- [x] Phase 6 — bê toàn bộ engine (89 skill, 13 agent, 129 hook) + rename `vit:`
+- [x] Phase 7 — manifest + release cho full tree
+- [x] Phase 8 — cài deps skill (`--install-skills`, chạy `install.sh`/`install.ps1`)
+- [x] Phase 9 — merge `settings.json` (giữ hook/config user) + prune zombie hook
+- [x] Phase 10 — lệnh `migrate` (codex / opencode / antigravity)
+- [x] Phase 11 — doctor health-check + audit rename
