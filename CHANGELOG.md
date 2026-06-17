@@ -1,3 +1,9 @@
+## [1.5.2](https://github.com/truongqv12/vit-cli/compare/v1.5.1...v1.5.2) (2026-06-17)
+
+### 📚 Documentation
+
+* viết lại README bằng tiếng Việt (giới thiệu, lệnh, cài đặt, phát triển) ([181d2f2](https://github.com/truongqv12/vit-cli/commit/181d2f2f678bdaf4dd629568cfcf93d15e0c78b4))
+
 ## [1.5.1](https://github.com/truongqv12/vit-cli/compare/v1.5.0...v1.5.1) (2026-06-17)
 
 ### 🐞 Bug Fixes
