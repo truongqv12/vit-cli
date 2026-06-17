@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/truongqv12/vit-cli/compare/v1.4.0...v1.5.0) (2026-06-17)
+
+### 🚀 Features
+
+* **ui:** redesign output sang phong cách clack + progress bar tải/cài engine ([602bb34](https://github.com/truongqv12/vit-cli/commit/602bb34a721649d2a452ca93b28f42256c754340))
+
 ## [1.4.0](https://github.com/truongqv12/vit-cli/compare/v1.3.0...v1.4.0) (2026-06-17)
 
 ### 🚀 Features
