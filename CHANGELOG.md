@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/truongqv12/vit-cli/compare/v1.2.0...v1.3.0) (2026-06-17)
+
+### 🚀 Features
+
+* **install:** cài file project-root + cảnh báo có bản CLI mới ([b2e9d7e](https://github.com/truongqv12/vit-cli/commit/b2e9d7ec748fb581df754ac157a21669a0e18e87))
+
 ## [1.2.0](https://github.com/truongqv12/vit-cli/compare/v1.1.0...v1.2.0) (2026-06-17)
 
 ### 🚀 Features
