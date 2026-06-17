@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/truongqv12/vit-cli/compare/v1.3.0...v1.4.0) (2026-06-17)
+
+### 🚀 Features
+
+* **migrate:** parity cờ + ngữ nghĩa với ck migrate ([018ea65](https://github.com/truongqv12/vit-cli/commit/018ea6586b288edc7c9fc4835dd0b08c3360dcf6))
+
 ## [1.3.0](https://github.com/truongqv12/vit-cli/compare/v1.2.0...v1.3.0) (2026-06-17)
 
 ### 🚀 Features
