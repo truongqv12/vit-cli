@@ -15,8 +15,9 @@ export async function scaffoldEnvFile(claudeDir: string): Promise<void> {
 		return;
 	}
 
-	// Không có template để copy → bỏ qua nhẹ nhàng.
+	// Không có template để copy → payload thiếu .env.example (bất thường). Báo để dễ chẩn đoán, không chặn.
 	if (!(await fs.pathExists(examplePath))) {
+		log.warn("Không thấy .claude/.env.example trong payload — bỏ qua tạo .claude/.env. Tạo tay nếu cần.");
 		return;
 	}
 
