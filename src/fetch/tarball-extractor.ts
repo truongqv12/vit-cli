@@ -13,7 +13,12 @@ export async function extractTarball(buf: Buffer, destDir: string): Promise<void
 	await tar.x({
 		file: tmpFile,
 		cwd: destDir,
-		filter: (entryPath) => !hasDotDotSegment(entryPath),
+		// Chặn `..` và bỏ symlink/hardlink — payload engine chỉ gồm file thường.
+		filter: (entryPath, entry) => {
+			if (hasDotDotSegment(entryPath)) return false;
+			const type = (entry as { type?: string }).type;
+			return type !== "SymbolicLink" && type !== "Link";
+		},
 	});
 	await fs.remove(tmpFile);
 }

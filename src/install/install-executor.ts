@@ -3,6 +3,7 @@
 import fs from "fs-extra";
 import path from "node:path";
 import { BACKUP_DIR, RUNTIME_DIR } from "../shared/config.js";
+import { withRetry } from "../shared/fs-retry.js";
 import { log } from "../shared/logger.js";
 import { safeResolve } from "../shared/path-safety.js";
 import { fileChecksum } from "../reconcile/checksum.js";
@@ -78,11 +79,11 @@ export async function executeInstall(
 				}
 				if (await fs.pathExists(target)) await backup(projectRoot, action.path);
 				await fs.ensureDir(path.dirname(target));
-				await fs.copy(source, target, { overwrite: true });
+				await withRetry(() => fs.copy(source, target, { overwrite: true }));
 				if (src) newRegistry.files[action.path] = { sourceChecksum: src, targetChecksum: src };
 			} else if (action.type === "delete") {
 				if (await fs.pathExists(target)) await backup(projectRoot, action.path);
-				await fs.remove(target);
+				await withRetry(() => fs.remove(target));
 				delete newRegistry.files[action.path];
 			} else if (action.type === "skip" || action.type === "conflict") {
 				// File engine: ghi entry phản ánh thực tế (nguồn hiện tại + đích hiện tại).

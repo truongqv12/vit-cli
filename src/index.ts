@@ -4,7 +4,7 @@ import { runDoctor } from "./commands/doctor.js";
 import { runInit } from "./commands/init.js";
 import { runPlan } from "./commands/plan/plan-command.js";
 import { runUpdate } from "./commands/update.js";
-import { printVersion } from "./commands/version.js";
+import { CLI_VERSION, printVersion } from "./commands/version.js";
 import { log } from "./shared/logger.js";
 
 const cli = cac("vit");
@@ -35,7 +35,7 @@ cli.command("doctor", "Kiểm tra môi trường (gh token, quyền engine, .cla
 cli.command("version", "In phiên bản CLI và engine đã cài").action(() => printVersion());
 
 cli.help();
-cli.version("0.1.0");
+cli.version(CLI_VERSION);
 
 try {
 	cli.parse();

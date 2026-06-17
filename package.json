@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Vit CLI — cài đặt, cập nhật và quản lý Vit Engine (rules/skills/agents) cho Claude Code.",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "bin": {
     "vit": "bin/vit.js"
