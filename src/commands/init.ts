@@ -5,11 +5,18 @@ import { log } from "../shared/logger.js";
 export interface InitOptions {
 	token?: string;
 	force?: boolean;
+	installSkills?: boolean;
+	withSudo?: boolean;
 }
 
 export async function runInit(options: InitOptions): Promise<void> {
 	try {
-		await installEngine({ token: options.token, force: options.force });
+		await installEngine({
+			token: options.token,
+			force: options.force,
+			installSkills: options.installSkills,
+			withSudo: options.withSudo,
+		});
 		log.ok("Cài engine xong. Mở Claude Code và dùng /vit:plan, /vit:cook, /vit:scout, /vit:fix.");
 	} catch (err) {
 		log.error(err instanceof Error ? err.message : String(err));

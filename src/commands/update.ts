@@ -9,6 +9,8 @@ export interface UpdateOptions {
 	token?: string;
 	force?: boolean;
 	dryRun?: boolean;
+	installSkills?: boolean;
+	withSudo?: boolean;
 }
 
 export async function runUpdate(options: UpdateOptions): Promise<void> {
@@ -17,7 +19,13 @@ export async function runUpdate(options: UpdateOptions): Promise<void> {
 		if (!hasRegistry) {
 			log.warn("Chưa cài engine ở project này — chạy `vit init` trước. Vẫn tiếp tục như cài mới.");
 		}
-		await installEngine({ token: options.token, force: options.force, dryRun: options.dryRun });
+		await installEngine({
+			token: options.token,
+			force: options.force,
+			dryRun: options.dryRun,
+			installSkills: options.installSkills,
+			withSudo: options.withSudo,
+		});
 		if (!options.dryRun) log.ok("Cập nhật engine xong.");
 	} catch (err) {
 		log.error(err instanceof Error ? err.message : String(err));
