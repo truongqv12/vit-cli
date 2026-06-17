@@ -1,8 +1,11 @@
 {
-  "name": "vit",
+  "name": "@truongqv12/vit-cli",
   "version": "0.1.0",
   "type": "module",
   "description": "Vit CLI — cài đặt, cập nhật và quản lý Vit Engine (rules/skills/agents) cho Claude Code.",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "vit": "bin/vit.js"
   },
@@ -15,7 +18,9 @@
     "dev": "tsx src/index.ts",
     "start": "node bin/vit.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --test dist/**/*.test.js"
+    "test": "node --test dist/**/*.test.js",
+    "prepack": "npm run build",
+    "semantic-release": "semantic-release"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -30,8 +35,13 @@
     "tar": "^7.4.3"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.3.5",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.10.0",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "semantic-release": "^24.2.3",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   }

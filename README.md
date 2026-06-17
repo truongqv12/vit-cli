@@ -18,8 +18,10 @@ npm link        # tạo lệnh `vit` toàn cục
 
 ### Sau này — qua npm
 
+Tên `vit` và `vit-cli` đã có người giữ trên npm, nên package dùng tên scoped (lệnh vẫn là `vit`):
+
 ```bash
-npm install -g vit
+npm install -g @truongqv12/vit-cli
 ```
 
 ## Sử dụng
