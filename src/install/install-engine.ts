@@ -5,16 +5,21 @@ import fs from "fs-extra";
 import { fetchEngine } from "../github/engine-fetcher.js";
 import { resolveToken } from "../github/token-resolver.js";
 import { loadOrSynthesizeManifest } from "../reconcile/engine-manifest.js";
+import { isNonInteractive } from "../shared/environment.js";
 import { log } from "../shared/logger.js";
+import { scaffoldEnvFile } from "./env-scaffold.js";
 import { executeInstall } from "./install-executor.js";
 import { handleSkillsInstallation } from "./skills/skill-deps-installer.js";
+import { promptInstallSkills } from "./skills/skills-install-prompt.js";
 
 export interface InstallEngineOptions {
 	token?: string;
 	force?: boolean;
 	dryRun?: boolean;
-	// Cài deps skill (python venv, npm...) sau khi reconcile — opt-in qua cờ --install-skills.
+	// Cài deps skill ngay không hỏi (cờ --install-skills).
 	installSkills?: boolean;
+	// Bỏ qua mọi prompt, tự đồng ý (cờ -y/--yes) — dùng cho script/CI.
+	yes?: boolean;
 	withSudo?: boolean;
 }
 
@@ -33,13 +38,26 @@ export async function installEngine(options: InstallEngineOptions): Promise<void
 			dryRun: options.dryRun,
 		});
 
-		// Sau khi file đã vào .claude/, cài deps skill nếu user opt-in (không chạy khi dry-run).
-		if (options.installSkills && !options.dryRun) {
-			const skillsDir = path.join(process.cwd(), ".claude", "skills");
-			await handleSkillsInstallation(skillsDir, {
-				skipConfirm: true, // opt-in qua cờ = đã đồng ý
-				withSudo: options.withSudo,
-			});
+		// Các bước hậu-cài chỉ chạy khi ghi thật (không dry-run).
+		if (!options.dryRun) {
+			const claudeDir = path.join(process.cwd(), ".claude");
+
+			// 1) Scaffold .claude/.env từ .env.example nếu thiếu (không đè key user).
+			await scaffoldEnvFile(claudeDir);
+
+			// 2) Cài deps skill: mặc định HỎI khi tương tác; cờ --install-skills/-y bỏ qua hỏi.
+			//    skipConfirm chỉ true khi đã quyết định cài (cờ hoặc non-interactive có cờ).
+			let doInstall = Boolean(options.installSkills || options.yes);
+			if (!doInstall && !isNonInteractive()) {
+				doInstall = await promptInstallSkills();
+			}
+			if (doInstall) {
+				const skillsDir = path.join(claudeDir, "skills");
+				await handleSkillsInstallation(skillsDir, {
+					skipConfirm: true, // đã đồng ý ở trên (cờ hoặc prompt)
+					withSudo: options.withSudo,
+				});
+			}
 		}
 	} finally {
 		await fs.remove(fetched.extractRoot).catch(() => {});

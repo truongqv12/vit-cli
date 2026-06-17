@@ -6,6 +6,7 @@ export interface InitOptions {
 	token?: string;
 	force?: boolean;
 	installSkills?: boolean;
+	yes?: boolean;
 	withSudo?: boolean;
 }
 
@@ -15,6 +16,7 @@ export async function runInit(options: InitOptions): Promise<void> {
 			token: options.token,
 			force: options.force,
 			installSkills: options.installSkills,
+			yes: options.yes,
 			withSudo: options.withSudo,
 		});
 		log.ok("Cài engine xong. Mở Claude Code và dùng /vit:plan, /vit:cook, /vit:scout, /vit:fix.");

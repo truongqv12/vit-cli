@@ -30,13 +30,21 @@ npm install -g @truongqv12/vit-cli
 gh auth login                 # cấp quyền đọc engine private (một lần)
 cd /đường/dẫn/project
 vit doctor                    # kiểm tra môi trường + hook wiring + skill
-vit init                      # cài engine vào .claude/ của project
-vit init --install-skills     # cài luôn deps skill (python venv, npm)
+vit init                      # cài engine + HỎI cài deps skill + tạo .claude/.env
+vit init --install-skills     # cài luôn deps skill, không hỏi
+vit init -y                   # tự đồng ý mọi prompt (script/CI)
 vit update                    # cập nhật engine lên bản mới nhất
 vit update --dry-run          # xem trước thay đổi
 vit migrate --dry-run         # xem kế hoạch xuất .claude/ sang provider khác
 vit version                   # phiên bản CLI + engine đã cài
 ```
+
+Khi chạy `vit init` trong terminal tương tác, sau khi cài file engine vào `.claude/`, CLI sẽ:
+
+1. Tạo `.claude/.env` từ `.env.example` nếu chưa có (giữ nguyên nếu bạn đã điền key).
+2. Hỏi **"Cài deps skill ngay?"** (mặc định Không) — đồng ý thì chạy `install.sh`/`install.ps1` cài python venv + npm cho skill.
+
+Trong CI / non-interactive (không TTY), bước hỏi tự bỏ qua; dùng `--install-skills` hoặc `-y` để cài không hỏi. Nhớ điền API key (GEMINI/OPENROUTER/MINIMAX) vào `.claude/.env` khi cần.
 
 Sau khi `vit init`, mở Claude Code và dùng các slash-command của engine:
 
@@ -51,7 +59,7 @@ Sau khi `vit init`, mở Claude Code và dùng các slash-command của engine:
 
 | Lệnh | Mô tả |
 | --- | --- |
-| `vit init` | Cài engine vào `.claude/` (per-project). `--install-skills` cài deps skill; `--with-sudo` (Linux) gồm gói hệ thống. |
+| `vit init` | Cài engine vào `.claude/` (per-project) + tạo `.claude/.env` + hỏi cài deps skill. `--install-skills` cài không hỏi; `-y/--yes` tự đồng ý; `--with-sudo` (Linux) gồm gói hệ thống. |
 | `vit update` | Cập nhật engine; giữ file bạn đã sửa (trừ `--force`). `--dry-run` xem trước. Merge `settings.json` (giữ hook/config bạn thêm). |
 | `vit migrate` | Xuất `.claude/` (agents/skills/rules/hooks/commands) sang **codex / opencode / antigravity**. `--dry-run`, `--global`, `--providers <list>`. |
 | `vit plan` | `create` / `check` / `uncheck` / `status` cho thư mục plan. |

@@ -14,7 +14,8 @@ cli
 	.command("init", "Cài Vit Engine vào .claude/ của project hiện tại")
 	.option("--token <token>", "GitHub token để truy cập engine private")
 	.option("--force", "Ghi đè file user đã sửa khi trùng")
-	.option("--install-skills", "Chạy script cài deps skill (python venv, npm) sau khi cài engine")
+	.option("--install-skills", "Cài deps skill ngay không hỏi (python venv, npm)")
+	.option("-y, --yes", "Tự đồng ý mọi prompt (cài deps skill) — dùng cho script/CI")
 	.option("--with-sudo", "Linux: gồm gói hệ thống cần sudo (ffmpeg, imagemagick)")
 	.action((options) => runInit(options));
 
@@ -23,7 +24,8 @@ cli
 	.option("--token <token>", "GitHub token để truy cập engine private")
 	.option("--force", "Ghi đè file user đã sửa khi trùng")
 	.option("--dry-run", "Chỉ xem thay đổi, không ghi")
-	.option("--install-skills", "Chạy script cài deps skill (python venv, npm) sau khi cập nhật")
+	.option("--install-skills", "Cài deps skill ngay không hỏi (python venv, npm)")
+	.option("-y, --yes", "Tự đồng ý mọi prompt (cài deps skill) — dùng cho script/CI")
 	.option("--with-sudo", "Linux: gồm gói hệ thống cần sudo (ffmpeg, imagemagick)")
 	.action((options) => runUpdate(options));
 

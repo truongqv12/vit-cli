@@ -10,6 +10,7 @@ export interface UpdateOptions {
 	force?: boolean;
 	dryRun?: boolean;
 	installSkills?: boolean;
+	yes?: boolean;
 	withSudo?: boolean;
 }
 
@@ -24,6 +25,7 @@ export async function runUpdate(options: UpdateOptions): Promise<void> {
 			force: options.force,
 			dryRun: options.dryRun,
 			installSkills: options.installSkills,
+			yes: options.yes,
 			withSudo: options.withSudo,
 		});
 		if (!options.dryRun) log.ok("Cập nhật engine xong.");
