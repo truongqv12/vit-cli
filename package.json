@@ -1,0 +1,38 @@
+{
+  "name": "vit",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Vit CLI — cài đặt, cập nhật và quản lý Vit Engine (rules/skills/agents) cho Claude Code.",
+  "bin": {
+    "vit": "bin/vit.js"
+  },
+  "files": [
+    "bin/",
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "start": "node bin/vit.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test dist/**/*.test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "@octokit/rest": "^21.1.1",
+    "cac": "^6.7.14",
+    "fs-extra": "^11.2.0",
+    "picocolors": "^1.1.1",
+    "tar": "^7.4.3"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
