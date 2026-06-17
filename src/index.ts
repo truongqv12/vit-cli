@@ -2,6 +2,7 @@
 import { cac } from "cac";
 import { runDoctor } from "./commands/doctor.js";
 import { runInit } from "./commands/init.js";
+import { runPlan } from "./commands/plan/plan-command.js";
 import { runUpdate } from "./commands/update.js";
 import { printVersion } from "./commands/version.js";
 import { log } from "./shared/logger.js";
@@ -20,6 +21,14 @@ cli
 	.option("--force", "Ghi đè file user đã sửa khi trùng")
 	.option("--dry-run", "Chỉ xem thay đổi, không ghi")
 	.action((options) => runUpdate(options));
+
+cli
+	.command("plan [action] [target]", "Quản lý plan: create | check | uncheck | status")
+	.option("--title <title>", "Tiêu đề plan (create)")
+	.option("--phases <phases>", "Danh sách phase ngăn cách dấu phẩy (create)")
+	.option("--dir <slug>", "Slug thư mục plan (create)")
+	.option("--start", "Đánh dấu phase đang làm thay vì xong (check)")
+	.action((action, target, options) => runPlan(action, target, options));
 
 cli.command("doctor", "Kiểm tra môi trường (gh token, quyền engine, .claude/)").action(() => runDoctor());
 
