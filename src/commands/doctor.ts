@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import path from "node:path";
 import { REGISTRY_FILE, RUNTIME_DIR } from "../shared/config.js";
 import { log } from "../shared/logger.js";
+import { checkHookWiring, checkSkills } from "./doctor-health-checks.js";
 
 function checkGhToken(): boolean {
 	if (process.env.GITHUB_TOKEN) {
@@ -38,6 +39,10 @@ export function runDoctor(): void {
 		const registryPath = path.resolve(process.cwd(), REGISTRY_FILE);
 		if (fs.existsSync(registryPath)) log.ok("Có registry engine (đã cài bằng vit).");
 		else log.info(`${RUNTIME_DIR}/ tồn tại nhưng chưa có registry vit — có thể cài đè bằng \`vit init\`.`);
+
+		// Kiểm sức khoẻ engine đã cài: hook wiring + skill.
+		checkHookWiring(process.cwd());
+		checkSkills(process.cwd());
 	} else {
 		log.info(`Chưa có ${RUNTIME_DIR}/ — chạy \`vit init\` để cài engine.`);
 	}
