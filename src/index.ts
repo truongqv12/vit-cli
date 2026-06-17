@@ -2,6 +2,7 @@
 import { cac } from "cac";
 import { runDoctor } from "./commands/doctor.js";
 import { runInit } from "./commands/init.js";
+import { runMigrate } from "./commands/migrate/migrate-command.js";
 import { runPlan } from "./commands/plan/plan-command.js";
 import { runUpdate } from "./commands/update.js";
 import { CLI_VERSION, printVersion } from "./commands/version.js";
@@ -33,6 +34,13 @@ cli
 	.option("--dir <slug>", "Slug thư mục plan (create)")
 	.option("--start", "Đánh dấu phase đang làm thay vì xong (check)")
 	.action((action, target, options) => runPlan(action, target, options));
+
+cli
+	.command("migrate", "Xuất .claude/ sang provider AI khác (codex, opencode, antigravity)")
+	.option("--dry-run", "Xem kế hoạch, không ghi file")
+	.option("--global", "Migrate từ ~/.claude/ thay vì .claude/ project")
+	.option("--providers <list>", "Danh sách provider ngăn cách dấu phẩy (mặc định: tất cả 3)")
+	.action((options) => runMigrate(options));
 
 cli.command("doctor", "Kiểm tra môi trường (gh token, quyền engine, .claude/)").action(() => runDoctor());
 
