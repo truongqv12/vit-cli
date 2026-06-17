@@ -1,3 +1,13 @@
+## [1.5.1](https://github.com/truongqv12/vit-cli/compare/v1.5.0...v1.5.1) (2026-06-17)
+
+### 🐞 Bug Fixes
+
+* **install:** trỏ lỗi cài skill tới log thật thay vì cờ VIT_VERBOSE vô tác dụng ([b2326b8](https://github.com/truongqv12/vit-cli/commit/b2326b8bdac234d8c60346ecd9c6142d391d66b6))
+
+### 📚 Documentation
+
+* thêm bộ tài liệu vit-cli (overview, codebase, architecture, standards, cli-reference, deploy) ([af644a5](https://github.com/truongqv12/vit-cli/commit/af644a50b14f574314398dc148bb326aa35b6827))
+
 ## [1.5.0](https://github.com/truongqv12/vit-cli/compare/v1.4.0...v1.5.0) (2026-06-17)
 
 ### 🚀 Features
