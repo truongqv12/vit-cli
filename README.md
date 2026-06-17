@@ -1,111 +1,247 @@
 # Vit CLI
 
-CLI cài đặt, cập nhật và quản lý **Vit Engine** (rules / skills / agents) cho [Claude Code](https://docs.claude.com/en/docs/claude-code/overview).
+Công cụ dòng lệnh cài đặt, cập nhật và quản lý **Vit Engine** (rules / skills / agents) cho [Claude Code](https://docs.claude.com/en/docs/claude-code/overview).
 
-> Engine là repo **private** — `vit` truy cập qua GitHub token. Đăng nhập `gh auth login` (hoặc đặt `GITHUB_TOKEN`) trước khi dùng.
+## Giới thiệu
+
+Vit CLI (`vit`) cung cấp những lệnh thiết yếu để khởi tạo, cập nhật, và xuất Vit Engine — một bộ công cụ AI hỗ trợ phát triển toàn diện cho Claude Code. Engine được lưu trữ trong repo **private** trên GitHub; bạn cần GitHub token (`gh auth login` hoặc `GITHUB_TOKEN`) để truy cập.
+
+**Tính năng chính:**
+- **Cài đặt**: Tải Vit Engine từ GitHub, giải nén vào `.claude/`
+- **Cập nhật**: Nâng cấp engine, giữ lại file bạn đã sửa
+- **Xuất (Migrate)**: Chuyển `.claude/` sang các platform khác (Codex, OpenCode, Antigravity)
+- **Quản lý Plan**: Tạo, theo dõi tiến độ các phase dự án
+- **Kiểm tra sức khỏe**: Xác minh token, quyền, cấu trúc `.claude/`, hook wiring, skill deps
+- **Thông minh Merge**: Phát hiện xung đột, bảo toàn tùy chỉnh người dùng
+- **Cross-Platform**: macOS, Linux, Windows (PowerShell/Bash)
+
+## Yêu cầu
+
+Trước khi sử dụng Vit CLI, hãy đảm bảo bạn có:
+
+1. **Node.js >= 18.0.0** — kiểm tra: `node --version`
+2. **GitHub CLI** — cài đặt và đăng nhập: `gh auth login`
+3. **GitHub Token** — chạy `gh auth login` chọn "Login with a web browser"
+4. **Quyền truy cập**: Được mời vào private repo `truongqv12/vit-engine`
+
+Nếu không có token hoặc không có quyền, `vit init` sẽ báo lỗi.
 
 ## Cài đặt
 
-### Giai đoạn đầu — qua git repo (chưa publish npm)
+Vit CLI được phát hành trên npm tại [@truongqv12/vit-cli](https://www.npmjs.com/package/@truongqv12/vit-cli).
+
+### Cách 1: npm (khuyên dùng)
+
+```bash
+npm install -g @truongqv12/vit-cli
+```
+
+### Cách 2: yarn
+
+```bash
+yarn global add @truongqv12/vit-cli
+```
+
+### Cách 3: pnpm
+
+```bash
+pnpm add -g @truongqv12/vit-cli
+```
+
+### Cách 4: Từ repo (phát triển)
 
 ```bash
 git clone https://github.com/your-org/vit-cli.git
 cd vit-cli
 npm install
 npm run build
-npm link        # tạo lệnh `vit` toàn cục
+npm link        # Tạo lệnh `vit` toàn cục
 ```
 
-### Sau này — qua npm
-
-Tên `vit` và `vit-cli` đã có người giữ trên npm, nên package dùng tên scoped (lệnh vẫn là `vit`):
+Sau cài đặt, kiểm tra:
 
 ```bash
-npm install -g @truongqv12/vit-cli
+vit --version
 ```
 
-## Sử dụng
+## Sử dụng nhanh
+
+### Thiết lập lần đầu
 
 ```bash
-gh auth login                 # cấp quyền đọc engine private (một lần)
+# Đăng nhập GitHub (một lần)
+gh auth login
+
+# Di chuyển tới folder project
 cd /đường/dẫn/project
-vit doctor                    # kiểm tra môi trường + hook wiring + skill
-vit init                      # cài engine + HỎI cài deps skill + tạo .claude/.env
-vit init --install-skills     # cài luôn deps skill, không hỏi
-vit init -y                   # tự đồng ý mọi prompt (script/CI)
-vit update                    # cập nhật engine lên bản mới nhất
-vit update --dry-run          # xem trước thay đổi
-vit migrate --dry-run         # xem kế hoạch xuất .claude/ sang provider khác
-vit version                   # phiên bản CLI + engine đã cài
+
+# Cài Vit Engine
+vit init
+
+# Kiểm tra sức khỏe
+vit doctor
 ```
 
-Khi chạy `vit init` trong terminal tương tác, sau khi cài file engine vào `.claude/`, CLI sẽ:
+### Các lệnh chính
 
-1. Cài thêm file cấp **project-root**: `plans/templates/` (mẫu plan), `.gitignore`, `.repomixignore`. File bạn đã có/đã sửa sẽ được giữ (không ghi đè; dùng `--force` mới đè).
-2. Tạo `.claude/.env` từ `.env.example` nếu chưa có (giữ nguyên nếu bạn đã điền key).
-3. Hỏi **"Cài deps skill ngay?"** (mặc định Không) — đồng ý thì chạy `install.sh`/`install.ps1` cài python venv + npm cho skill.
-4. Cảnh báo nếu có bản `vit` CLI mới trên npm (chỉ nhắc, không tự cài).
+| Lệnh | Mô tả | Chi tiết |
+|------|-------|---------|
+| `vit init` | Cài Vit Engine vào `.claude/` | Tải engine từ GitHub, merge settings, hỏi cài deps skill |
+| `vit update` | Cập nhật engine lên bản mới | Giữ lại file user đã sửa; dùng `--dry-run` để xem trước |
+| `vit migrate` | Xuất `.claude/` sang provider khác | Hỗ trợ: codex, opencode, antigravity |
+| `vit plan` | Quản lý project plans | create / check / uncheck / status |
+| `vit doctor` | Kiểm tra sức khỏe | Token, quyền, `.claude/`, hook, skill |
+| `vit version` | In phiên bản | CLI version + engine đã cài |
 
-Trong CI / non-interactive (không TTY), bước hỏi tự bỏ qua; dùng `--install-skills` hoặc `-y` để cài không hỏi. Nhớ điền API key (GEMINI/OPENROUTER/MINIMAX) vào `.claude/.env` khi cần.
+Chi tiết: xem [docs/cli-reference.md](./docs/cli-reference.md).
 
-Sau khi `vit init`, mở Claude Code và dùng các slash-command của engine:
+## Ví dụ
 
-```text
-/vit:plan "thêm xác thực người dùng"
-/vit:cook /đường/dẫn/plans/<plan>/plan.md
-/vit:scout "tìm chỗ xử lý upload"
-/vit:fix "lỗi đăng nhập"
-```
-
-## Lệnh
-
-| Lệnh | Mô tả |
-| --- | --- |
-| `vit init` | Cài engine vào `.claude/` (per-project) + tạo `.claude/.env` + hỏi cài deps skill. `--install-skills` cài không hỏi; `-y/--yes` tự đồng ý; `--with-sudo` (Linux) gồm gói hệ thống. |
-| `vit update` | Cập nhật engine; giữ file bạn đã sửa (trừ `--force`). `--dry-run` xem trước. Merge `settings.json` (giữ hook/config bạn thêm). |
-| `vit migrate` | Xuất `.claude/` (agents/skills/rules/hooks/commands) sang **codex / opencode / antigravity**. Chọn provider: `-a/--agent <list>` (lặp được hoặc CSV), `--all`, `--providers` (alias). Ghi đè: `-f/--force`, `-y/--yes`, `--dry-run`, `-g/--global`. Lọc loại: `--only-agents/--only-commands/--only-skills`, `--config`, `--rules`, `--hooks`, `--skip-*`. Khác: `--source <path>` (CLAUDE.md tùy biến, chỉ config), `--install`/`--reconcile`. |
-| `vit plan` | `create` / `check` / `uncheck` / `status` cho thư mục plan. |
-| `vit doctor` | Kiểm tra token, quyền engine, `.claude/`, hook wiring, skill. |
-| `vit version` | In phiên bản CLI + engine. |
-
-### Ví dụ `vit migrate`
+### Cài đặt (interactive)
 
 ```bash
-vit migrate --dry-run                          # xem kế hoạch, không ghi
-vit migrate --agent codex                       # 1 provider
-vit migrate --agent codex -f                    # cài lại cả khi không đổi (đè + backup)
-vit migrate -a codex -a opencode                # nhiều provider (lặp cờ)
-vit migrate --agent codex,opencode              # nhiều provider (CSV)
-vit migrate --all                               # cả 3: codex, opencode, antigravity
-vit migrate --agent codex --only-agents         # chỉ agents
-vit migrate --agent codex --skip-skills         # mọi loại trừ skills
-vit migrate --providers codex,opencode          # alias cũ vẫn chạy
+vit init
 ```
 
-> Hook của bạn vẫn được migrate (chỉ Codex nhận hook; OpenCode/Antigravity không hỗ trợ). Riêng nhóm
-> hook **generated-context** của engine (session-init, dev-rules-reminder, plan-format-kanban…) bị bỏ
-> qua vì chúng bơm context theo định dạng riêng của Claude, không chạy được trên agent khác.
+Hệ thống sẽ:
+1. Xác minh GitHub token
+2. Tải Vit Engine từ private repo
+3. Cài file vào `.claude/`
+4. Tạo `.claude/.env` từ template
+5. Hỏi: "Cài dependency của skill ngay không?" (chọn Yes/No)
 
-### Ví dụ `vit plan`
+### Cài đặt không hỏi (CI/CD)
 
 ```bash
-vit plan create --title "Thêm xác thực" --phases "Nghiên cứu, Triển khai, Kiểm thử" --dir auth
-cd plans/<date>-auth
-vit plan check 1 --start     # phase 1 -> đang làm
-vit plan check 2             # phase 2 -> xong
-vit plan status              # in tiến độ
+vit init -y --install-skills
 ```
 
-## Trạng thái phát triển
+Bỏ qua tất cả prompt, tự cài xong.
 
-- [x] Phase 1 — khung CLI + engine + đổi tên `vit:`
-- [x] Phase 2 — truy cập engine private qua `gh`, tải/giải nén
-- [x] Phase 3 — `init`/`update` reconcile theo manifest + deletions
-- [x] Phase 4 — lệnh `plan`
-- [x] Phase 5 — skill `memory` (native) + release pipeline
-- [x] Phase 6 — bê toàn bộ engine (89 skill, 13 agent, 129 hook) + rename `vit:`
-- [x] Phase 7 — manifest + release cho full tree
-- [x] Phase 8 — cài deps skill (`--install-skills`, chạy `install.sh`/`install.ps1`)
-- [x] Phase 9 — merge `settings.json` (giữ hook/config user) + prune zombie hook
-- [x] Phase 10 — lệnh `migrate` (codex / opencode / antigravity)
-- [x] Phase 11 — doctor health-check + audit rename
+### Cập nhật
+
+```bash
+vit update --dry-run      # Xem thay đổi trước
+vit update                 # Cập nhật thực sự
+```
+
+### Xuất sang OpenCode
+
+```bash
+vit migrate --agent opencode --dry-run     # Xem trước
+vit migrate --agent opencode                # Xuất thực sự
+```
+
+Hoặc xuất sang nhiều platform:
+
+```bash
+vit migrate --agent codex -a opencode -a antigravity --dry-run
+vit migrate --all                           # Xuất sang cả 3
+```
+
+### Tạo plan
+
+```bash
+vit plan create --title "Thêm xác thực" --phases "Nghiên cứu, API, UI, Kiểm thử" --dir auth
+
+# Di chuyển vào folder plan
+cd plans/20250618-1430-auth
+
+# Theo dõi tiến độ
+vit plan check 1              # Phase 1 xong
+vit plan check 2 --start      # Phase 2 đang làm
+vit plan status               # In progress
+```
+
+### Kiểm tra sức khỏe
+
+```bash
+vit doctor        # Báo cáo đầy đủ
+vit doctor --verbose  # Chi tiết debug
+```
+
+## Tài liệu
+
+Tài liệu chi tiết trong `/docs`:
+
+- **[CLI Reference](./docs/cli-reference.md)** — Hướng dẫn lệnh, option, ví dụ chi tiết
+- **[Project Overview & PDR](./docs/project-overview-pdr.md)** — Yêu cầu, tính năng, lộ trình
+- **[System Architecture](./docs/system-architecture.md)** — Kiến trúc, luồng dữ liệu
+- **[Code Standards](./docs/code-standards.md)** — Quy tắc mã, best practices
+- **[Deployment Guide](./docs/deployment-guide.md)** — Quy trình release
+- **[Codebase Summary](./docs/codebase-summary.md)** — Tổng quan cấu trúc
+
+## Phát triển
+
+### Cấu trúc dự án
+
+```
+src/
+├── index.ts              # Điểm vào CLI
+├── commands/             # Lệnh (init, update, migrate, plan, doctor, version)
+├── domains/              # Logic nghiệp vụ (github, installation, migration, skills)
+├── services/             # Service chung (file ops, package installer)
+└── shared/               # Tiện ích (logger, UI, path resolver)
+```
+
+### Build & Test
+
+```bash
+npm run build          # Biên dịch TypeScript
+npm test               # Chạy test
+npm run typecheck      # Kiểm tra type
+npm run dev [args]     # Chạy dev: npm run dev init
+```
+
+### Quality Gate
+
+Trước khi commit/push, chạy:
+
+```bash
+npm run build
+npm test
+npm run typecheck
+```
+
+## Lập kế hoạch
+
+Quá trình phát triển theo phases:
+
+- [x] Phase 1 — Khung CLI + engine + đổi tên `vit:`
+- [x] Phase 2 — Truy cập engine private via `gh`, tải/giải nén
+- [x] Phase 3 — `init`/`update` reconcile theo manifest
+- [x] Phase 4 — Lệnh `plan`
+- [x] Phase 5 — Skill `memory` + release pipeline
+- [x] Phase 6 — Bê toàn bộ engine + đổi tên `vit:`
+- [x] Phase 7 — Manifest + release full tree
+- [x] Phase 8 — Cài deps skill (`--install-skills`)
+- [x] Phase 9 — Merge `settings.json` + prune orphaned hooks
+- [x] Phase 10 — Lệnh `migrate` (codex / opencode / antigravity)
+- [x] Phase 11 — `doctor` health-check
+
+## Xử lý sự cố
+
+Chạy `vit doctor` để chẩn đoán:
+
+```bash
+vit doctor           # Kiểm tra tất cả
+vit doctor --verbose # Chi tiết
+```
+
+**Vấn đề thường gặp:**
+
+| Lỗi | Giải pháp |
+|-----|----------|
+| "No GitHub token" | Chạy `gh auth login` |
+| "403 Forbidden" | Kiểm tra token scope (`repo`), quyền truy cập repo |
+| "Network timeout" | Kiểm tra kết nối, firewall/proxy |
+| "File permission denied" | Kiểm tra quyền `.claude/` |
+| Skill install fail | Chạy `vit init --install-skills` để thử lại |
+
+## Giấy phép
+
+MIT
+
+---
+
+**Inspired by [ClaudeKit](https://claudekit.cc)** — lấy cảm hứng từ cấu trúc và UX của ClaudeKit CLI.
