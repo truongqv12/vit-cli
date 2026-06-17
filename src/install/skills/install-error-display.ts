@@ -26,7 +26,13 @@ function parseNameReason(s: string): [string, string | undefined] {
 export function displayInstallErrors(skillsDir: string): void {
 	const summaryPath = join(skillsDir, ".install-error-summary.json");
 	if (!existsSync(summaryPath)) {
-		log.error("Cài skill thất bại. Chạy lại với VIT_VERBOSE=1 để xem chi tiết.");
+		// Script cài (install.ps1/.sh) chưa kịp ghi summary (thường do crash giữa chừng).
+		// Lỗi pip thật được ghi theo từng skill ở .venv/logs/install-<skill>.log —
+		// trỏ user tới đó thay vì VIT_VERBOSE (cờ này KHÔNG ảnh hưởng script cài).
+		const logDir = join(skillsDir, ".venv", "logs");
+		log.error("Cài skill thất bại trước khi kịp ghi tóm tắt lỗi.");
+		log.info(`Xem log chi tiết từng skill tại: ${logDir}`);
+		log.info(`Cài lại tay: xem ${join(skillsDir, "INSTALLATION.md")}`);
 		return;
 	}
 
