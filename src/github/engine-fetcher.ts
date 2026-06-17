@@ -4,10 +4,11 @@ import fs from "fs-extra";
 import path from "node:path";
 import { CACHE_DIR, ENGINE_REPO } from "../shared/config.js";
 import { log } from "../shared/logger.js";
-import { extractTarball, findBundledManifest, findClaudeDir } from "../fetch/tarball-extractor.js";
+import { extractTarball, findBundledManifest, findClaudeDir, findRootDir } from "../fetch/tarball-extractor.js";
 
 export interface FetchedEngine {
 	engineDir: string; // đường dẫn thư mục claude/ đã giải nén
+	rootDir: string | null; // thư mục root/ (payload file project-root), null nếu gói không có
 	version: string; // tag release hoặc tên branch
 	bundledManifestPath: string | null; // manifest đi kèm (nếu tải từ release asset)
 	extractRoot: string; // thư mục tạm để dọn sau khi xong
@@ -76,7 +77,8 @@ export async function fetchEngine(token: string): Promise<FetchedEngine> {
 	await extractTarball(source.buf, extractRoot);
 
 	const engineDir = await findClaudeDir(extractRoot);
+	const rootDir = await findRootDir(extractRoot);
 	const bundledManifestPath = await findBundledManifest(extractRoot);
 
-	return { engineDir, version: source.version, bundledManifestPath, extractRoot };
+	return { engineDir, rootDir, version: source.version, bundledManifestPath, extractRoot };
 }

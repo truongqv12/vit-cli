@@ -41,8 +41,10 @@ vit version                   # phiên bản CLI + engine đã cài
 
 Khi chạy `vit init` trong terminal tương tác, sau khi cài file engine vào `.claude/`, CLI sẽ:
 
-1. Tạo `.claude/.env` từ `.env.example` nếu chưa có (giữ nguyên nếu bạn đã điền key).
-2. Hỏi **"Cài deps skill ngay?"** (mặc định Không) — đồng ý thì chạy `install.sh`/`install.ps1` cài python venv + npm cho skill.
+1. Cài thêm file cấp **project-root**: `plans/templates/` (mẫu plan), `.gitignore`, `.repomixignore`. File bạn đã có/đã sửa sẽ được giữ (không ghi đè; dùng `--force` mới đè).
+2. Tạo `.claude/.env` từ `.env.example` nếu chưa có (giữ nguyên nếu bạn đã điền key).
+3. Hỏi **"Cài deps skill ngay?"** (mặc định Không) — đồng ý thì chạy `install.sh`/`install.ps1` cài python venv + npm cho skill.
+4. Cảnh báo nếu có bản `vit` CLI mới trên npm (chỉ nhắc, không tự cài).
 
 Trong CI / non-interactive (không TTY), bước hỏi tự bỏ qua; dùng `--install-skills` hoặc `-y` để cài không hỏi. Nhớ điền API key (GEMINI/OPENROUTER/MINIMAX) vào `.claude/.env` khi cần.
 

@@ -37,6 +37,19 @@ export async function findClaudeDir(destDir: string): Promise<string> {
 	throw new Error("Không tìm thấy thư mục 'claude/' (kèm metadata.json) trong gói engine đã tải.");
 }
 
+// Tìm thư mục `root/` (payload file cấp project-root) cạnh `claude/`, null nếu không có.
+// Chỉ release asset mới đóng kèm `root/`; tarball repo branch fallback không có.
+export async function findRootDir(destDir: string): Promise<string | null> {
+	const direct = path.join(destDir, "root");
+	if (await isDir(direct)) return direct;
+
+	for (const entry of await fs.readdir(destDir)) {
+		const nested = path.join(destDir, entry, "root");
+		if (await isDir(nested)) return nested;
+	}
+	return null;
+}
+
 // Tìm release-manifest.json đi kèm (nếu có) — release asset bundle sẵn manifest.
 export async function findBundledManifest(destDir: string): Promise<string | null> {
 	const direct = path.join(destDir, "release-manifest.json");
@@ -51,4 +64,12 @@ export async function findBundledManifest(destDir: string): Promise<string | nul
 
 async function isClaudeDir(dir: string): Promise<boolean> {
 	return (await fs.pathExists(dir)) && (await fs.pathExists(path.join(dir, "metadata.json")));
+}
+
+async function isDir(dir: string): Promise<boolean> {
+	try {
+		return (await fs.stat(dir)).isDirectory();
+	} catch {
+		return false;
+	}
 }

@@ -1,5 +1,6 @@
 // Reconciler THUẦN — không I/O. Nhận manifest + registry + trạng thái đích hiện tại,
 // trả về plan hành động cho từng file. Mọi đọc/ghi file nằm ở executor.
+import { manifestKey } from "./reconcile-types.js";
 import type { EngineManifest, ReconcileAction, ReconcilePlan, Registry, TargetState } from "./reconcile-types.js";
 
 export interface ReconcileInput {
@@ -17,18 +18,21 @@ export function reconcile(input: ReconcileInput): ReconcilePlan {
 
 	for (const file of manifest.files) {
 		const src = file.checksum;
-		const cur = targetState[file.path] ?? null;
-		const reg = regFiles[file.path];
+		const area = file.area;
+		// Khoá lookup theo vùng (claude: path trần; root: prefix) để file trùng tên 2 vùng không đụng nhau.
+		const key = manifestKey(area, file.path);
+		const cur = targetState[key] ?? null;
+		const reg = regFiles[key];
 
 		// File đích chưa tồn tại -> cài mới.
 		if (cur === null) {
-			actions.push({ type: "install", path: file.path, reason: "file chưa tồn tại" });
+			actions.push({ type: "install", path: file.path, area, reason: "file chưa tồn tại" });
 			continue;
 		}
 
 		// Đã trùng hệt nguồn -> bỏ qua.
 		if (cur === src) {
-			actions.push({ type: "skip", path: file.path, reason: "đã trùng nguồn" });
+			actions.push({ type: "skip", path: file.path, area, reason: "đã trùng nguồn" });
 			continue;
 		}
 
@@ -37,22 +41,22 @@ export function reconcile(input: ReconcileInput): ReconcilePlan {
 			const engineChanged = src !== reg.sourceChecksum;
 
 			if (!userModified && engineChanged) {
-				actions.push({ type: "update", path: file.path, reason: "engine đổi, user chưa sửa" });
+				actions.push({ type: "update", path: file.path, area, reason: "engine đổi, user chưa sửa" });
 			} else if (userModified && !engineChanged) {
 				actions.push(
 					force
-						? { type: "update", path: file.path, reason: "khôi phục bản engine do --force" }
-						: { type: "skip", path: file.path, reason: "giữ bản user sửa (engine không đổi)" },
+						? { type: "update", path: file.path, area, reason: "khôi phục bản engine do --force" }
+						: { type: "skip", path: file.path, area, reason: "giữ bản user sửa (engine không đổi)" },
 				);
 			} else if (userModified && engineChanged) {
 				actions.push(
 					force
-						? { type: "update", path: file.path, reason: "conflict — ghi đè do --force" }
-						: { type: "conflict", path: file.path, reason: "cả engine lẫn user đều đổi" },
+						? { type: "update", path: file.path, area, reason: "conflict — ghi đè do --force" }
+						: { type: "conflict", path: file.path, area, reason: "cả engine lẫn user đều đổi" },
 				);
 			} else {
 				// !userModified && !engineChanged nhưng cur != src: hiếm, coi như cập nhật.
-				actions.push({ type: "update", path: file.path, reason: "lệch checksum, đồng bộ lại" });
+				actions.push({ type: "update", path: file.path, area, reason: "lệch checksum, đồng bộ lại" });
 			}
 			continue;
 		}
@@ -60,8 +64,8 @@ export function reconcile(input: ReconcileInput): ReconcilePlan {
 		// Không có registry (file đích có sẵn, không do vit quản) và khác nguồn.
 		actions.push(
 			force
-				? { type: "update", path: file.path, reason: "file có sẵn — ghi đè do --force" }
-				: { type: "conflict", path: file.path, reason: "file có sẵn không do vit quản, khác nguồn" },
+				? { type: "update", path: file.path, area, reason: "file có sẵn — ghi đè do --force" }
+				: { type: "conflict", path: file.path, area, reason: "file có sẵn không do vit quản, khác nguồn" },
 		);
 	}
 

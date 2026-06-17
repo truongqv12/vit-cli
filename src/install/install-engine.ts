@@ -5,6 +5,8 @@ import fs from "fs-extra";
 import { fetchEngine } from "../github/engine-fetcher.js";
 import { resolveToken } from "../github/token-resolver.js";
 import { loadOrSynthesizeManifest } from "../reconcile/engine-manifest.js";
+import { CLI_VERSION } from "../commands/version.js";
+import { checkCliUpdate } from "../shared/check-cli-update.js";
 import { isNonInteractive } from "../shared/environment.js";
 import { log } from "../shared/logger.js";
 import { scaffoldEnvFile } from "./env-scaffold.js";
@@ -33,7 +35,7 @@ export async function installEngine(options: InstallEngineOptions): Promise<void
 			return;
 		}
 		log.info(`Engine ${manifest.version}: ${manifest.files.length} file payload.`);
-		await executeInstall(process.cwd(), fetched.engineDir, manifest, {
+		await executeInstall(process.cwd(), fetched.engineDir, fetched.rootDir, manifest, {
 			force: options.force,
 			dryRun: options.dryRun,
 		});
@@ -58,6 +60,9 @@ export async function installEngine(options: InstallEngineOptions): Promise<void
 					withSudo: options.withSudo,
 				});
 			}
+
+			// 3) Cảnh báo nếu có bản CLI mới trên npm (im lặng nếu offline/lỗi) — đặt cuối để nằm cuối output.
+			await checkCliUpdate(CLI_VERSION);
 		}
 	} finally {
 		await fs.remove(fetched.extractRoot).catch(() => {});

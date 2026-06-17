@@ -30,7 +30,8 @@ async function synthesizeFromDir(engineDir: string, version: string): Promise<En
 			} else if (entry.isFile()) {
 				const buf = await fs.readFile(full);
 				const rel = path.relative(engineDir, full).replace(/\\/g, "/");
-				files.push({ path: rel, checksum: contentChecksum(buf), size: buf.length });
+				// Synthesize chỉ quét claude/ (fallback khi không có bundled manifest) -> mọi file vùng claude.
+				files.push({ path: rel, checksum: contentChecksum(buf), size: buf.length, area: "claude" });
 			}
 		}
 	}
