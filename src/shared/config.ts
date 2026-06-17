@@ -3,9 +3,8 @@ import { homedir } from "node:os";
 import path from "node:path";
 
 // Repo engine PRIVATE — CLI tải nội dung từ đây qua GitHub token.
-// TODO: cập nhật owner/repo thật khi tạo repo trên GitHub.
 export const ENGINE_REPO = {
-	owner: "your-org",
+	owner: "truongqv12",
 	repo: "vit-engine",
 	branch: "main",
 } as const;
