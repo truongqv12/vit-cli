@@ -1,3 +1,9 @@
+## [1.5.3](https://github.com/truongqv12/vit-cli/compare/v1.5.2...v1.5.3) (2026-06-18)
+
+### 🐞 Bug Fixes
+
+* **migrate:** escape backslash khi sinh TOML agent Codex ([beb1f49](https://github.com/truongqv12/vit-cli/commit/beb1f4977d25ef1daa5935a9e41cf8387e385420))
+
 ## [1.5.2](https://github.com/truongqv12/vit-cli/compare/v1.5.1...v1.5.2) (2026-06-17)
 
 ### 📚 Documentation
