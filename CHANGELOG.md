@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/truongqv12/vit-cli/compare/v1.5.3...v1.6.0) (2026-06-18)
+
+### 🚀 Features
+
+* **migrate:** đăng ký Codex hooks (.codex/hooks.json + features flag) ([28bf686](https://github.com/truongqv12/vit-cli/commit/28bf686bab5c801bd7e3755c70c27c9b000d90f2))
+
 ## [1.5.3](https://github.com/truongqv12/vit-cli/compare/v1.5.2...v1.5.3) (2026-06-18)
 
 ### 🐞 Bug Fixes
