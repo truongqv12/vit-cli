@@ -306,6 +306,8 @@ export async function installPortableItem(
 			portableType,
 			overwritten,
 			warnings: converted.warnings.length > 0 ? converted.warnings : undefined,
+			// Đường tuyệt đối để pipeline Codex hooks sinh wrapper + rewrite path.
+			installAbsolutePath: resolve(targetPath),
 		};
 	} catch (err) {
 		return {

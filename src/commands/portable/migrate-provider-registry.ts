@@ -56,6 +56,16 @@ export const PROVIDERS: Record<ProviderType, ProviderConfig> = {
 			writeStrategy: "per-file",
 			fileExtension: "",
 		},
+		// Manifest đăng ký hook (Codex đọc file này để bật hook).
+		hooksSettingsPath: {
+			projectPath: ".codex/hooks.json",
+			globalPath: join(home, ".codex/hooks.json"),
+		},
+		// config.toml để bật [features] hooks = true.
+		featuresConfigPath: {
+			projectPath: ".codex/config.toml",
+			globalPath: join(home, ".codex/config.toml"),
+		},
 	},
 
 	opencode: {

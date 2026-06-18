@@ -8,6 +8,14 @@
 /** Danh sách provider được hỗ trợ (LEAN: chỉ 3) */
 export type ProviderType = "codex" | "opencode" | "antigravity";
 
+/** Cảnh báo phát sinh trong quá trình migrate (vd: hook bị bỏ vì event Codex không hỗ trợ) */
+export interface MigrationWarning {
+	reason: string;
+	message: string;
+	event?: string;
+	hookFile?: string;
+}
+
 /** Định dạng chuyển đổi nội dung nguồn sang provider đích */
 export type ConversionFormat =
 	| "direct-copy"            // Sao chép nguyên bản (có thể thay .claude/ → .agent/)
@@ -32,6 +40,12 @@ export interface ProviderPathConfig {
 	fileExtension: string;
 }
 
+/** Cặp đường dẫn project/global cho một file cấu hình đích */
+export interface ProviderScopedPath {
+	projectPath: string;
+	globalPath: string;
+}
+
 /** Cấu hình đầy đủ của một provider */
 export interface ProviderConfig {
 	name: ProviderType;
@@ -42,6 +56,10 @@ export interface ProviderConfig {
 	config: ProviderPathConfig | null;
 	rules: ProviderPathConfig | null;
 	hooks: ProviderPathConfig | null;
+	/** Đường ghi hooks.json (manifest đăng ký hook) — chỉ Codex; null nếu provider không hỗ trợ hook settings */
+	hooksSettingsPath?: ProviderScopedPath | null;
+	/** Đường config.toml để bật [features] hooks = true — chỉ Codex */
+	featuresConfigPath?: ProviderScopedPath | null;
 }
 
 // --- Portable Items ---
@@ -98,6 +116,8 @@ export interface MigrateInstallResult {
 	overwritten?: boolean;
 	error?: string;
 	warnings?: string[];
+	/** Đường dẫn tuyệt đối tới file đã cài (cần cho pipeline Codex hooks: sinh wrapper + rewrite path) */
+	installAbsolutePath?: string;
 }
 
 // --- Registry ---

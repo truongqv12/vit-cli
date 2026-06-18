@@ -4,9 +4,10 @@
  * Hiển thị UI tách riêng trong migrate-display.ts.
  */
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { log } from "../../shared/logger.js";
 import { isGeneratedContextHookName } from "../portable/generated-context-hooks.js";
+import { migrateCodexHooksSettings } from "../portable/migrate-hooks-settings-merger.js";
 import { discoverAll } from "../portable/migrate-discovery.js";
 import { installPortableItem, installSkillDirectory } from "../portable/migrate-installer.js";
 import { validateMutualExclusion } from "../portable/migrate-mode-validator.js";
@@ -138,6 +139,86 @@ export async function runMigrate(options: MigrateOptions): Promise<void> {
 		}
 	}
 
+	// Đăng ký Codex hooks: ghi .codex/hooks.json + bật [features] hooks=true.
+	// Chỉ chạy khi migrate sang codex và có hook cài thành công.
+	// Bọc try/catch: lỗi bất ngờ (vd lock contention) KHÔNG được che mất báo cáo kết quả install.
+	if (selectedProviders.includes("codex") && scoped.hooks.length > 0) {
+		try {
+			await registerCodexHooks(results, isGlobal, claudeDir);
+		} catch (err) {
+			log.error(
+				`Đăng ký Codex hook gặp lỗi không mong muốn: ${err instanceof Error ? err.message : String(err)}`,
+			);
+		}
+	}
+
 	// In kết quả và set exit code nếu có lỗi (migrate-display.ts)
 	printResults(results);
+}
+
+// ─── Đăng ký Codex hooks (sau khi copy file) ─────────────────────────────────
+
+/**
+ * Sau khi copy file hook vào .codex/hooks/, đọc .claude/settings.json rồi sinh
+ * .codex/hooks.json + bật [features] hooks=true để Codex nhận hook.
+ *
+ * Lưu ý: hooks dir truyền dạng TƯƠNG ĐỐI cho project scope (".codex/hooks",
+ * ".claude/hooks") để dir-rewrite khớp command dạng `$CLAUDE_PROJECT_DIR/...`
+ * → cho ra path phẳng (đúng như claudekit/ck).
+ */
+async function registerCodexHooks(
+	results: MigrateInstallResult[],
+	isGlobal: boolean,
+	claudeDir: string,
+): Promise<void> {
+	const codexConfig = PROVIDERS.codex;
+	if (!codexConfig.hooksSettingsPath || !codexConfig.featuresConfigPath || !codexConfig.hooks) {
+		return;
+	}
+
+	const hookResults = results.filter(
+		(r) => r.provider === "codex" && r.portableType === "hooks" && r.success && !r.skipped,
+	);
+	if (hookResults.length === 0) return;
+
+	const installedHookFiles = hookResults.map((r) => basename(r.path));
+	const installedHookAbsolutePaths = hookResults
+		.map((r) => r.installAbsolutePath)
+		.filter((p): p is string => Boolean(p));
+
+	const claudeSettingsPath = join(claudeDir, "settings.json");
+	const hooksJsonPath = isGlobal
+		? codexConfig.hooksSettingsPath.globalPath
+		: join(process.cwd(), codexConfig.hooksSettingsPath.projectPath);
+	const configTomlPath = isGlobal
+		? codexConfig.featuresConfigPath.globalPath
+		: join(process.cwd(), codexConfig.featuresConfigPath.projectPath);
+	// Dir rewrite: tương đối ở project scope, tuyệt đối ở global scope.
+	const targetHooksDir = isGlobal
+		? (codexConfig.hooks.globalPath ?? "")
+		: (codexConfig.hooks.projectPath ?? "");
+	const sourceHooksDir = isGlobal ? join(homedir(), ".claude/hooks") : ".claude/hooks";
+
+	const result = await migrateCodexHooksSettings({
+		installedHookFiles,
+		installedHookAbsolutePaths,
+		claudeSettingsPath,
+		hooksJsonPath,
+		configTomlPath,
+		targetHooksDir,
+		sourceHooksDir,
+		global: isGlobal,
+	});
+
+	for (const w of result.warnings ?? []) log.warn(`[hook] ${w.message}`);
+	if (result.status === "registered") {
+		log.info(
+			`Đã đăng ký ${result.hooksRegistered} Codex hook vào ${hooksJsonPath}` +
+			(result.featureFlagWritten ? " + bật [features] hooks=true" : ""),
+		);
+	} else if (!result.success) {
+		log.error(`Đăng ký Codex hook thất bại: ${result.error ?? result.status}`);
+	} else if (result.message) {
+		log.warn(`[hook] ${result.message}`);
+	}
 }
