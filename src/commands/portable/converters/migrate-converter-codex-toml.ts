@@ -26,10 +26,16 @@ export function toCodexSlug(name: string): string {
 	return slug;
 }
 
-/** Escape chuỗi dùng trong TOML multiline (""") */
+/** Escape chuỗi dùng trong TOML multiline basic string (""") */
 function escapeTomlMultiline(text: string): string {
-	// TOML multiline: không escape backslash, chỉ cần tránh """ bên trong
-	return text.replace(/"""/g, '""\\"');
+	// Trong TOML multi-line basic string, dấu "\" là ký tự escape.
+	// Phải escape backslash trước để nó hiển thị nguyên văn (vd regex "\|", "\d" trong nội dung agent).
+	let escaped = text.replace(/\\/g, "\\\\");
+	// Tách chuỗi """ bên trong để không đóng chuỗi sớm.
+	escaped = escaped.replace(/"""/g, '""\\"');
+	// Dấu " ở cuối sẽ dính vào """ đóng chuỗi — thêm xuống dòng để tách.
+	if (escaped.endsWith('"')) escaped += "\n";
+	return escaped;
 }
 
 /** Suy ra sandbox_mode từ chuỗi tools của frontmatter */
